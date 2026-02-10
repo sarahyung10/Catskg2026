@@ -14,10 +14,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&display=swap" rel="stylesheet">
     
     <script>
-        window.onerror = function(msg, url, line) {
-            // 如果只有輕微錯誤不跳窗，重大錯誤才顯示
-            console.error("錯誤:", msg); 
-        };
+        window.onerror = function(msg, url, line) { console.error("錯誤:", msg); };
     </script>
 
     <style>
@@ -26,7 +23,7 @@
             --card: #ffffff;
             --text-main: #464646;
             --text-light: #888888;
-            --primary: #78866b; /* 莫蘭迪綠 */
+            --primary: #78866b;
             --danger: #d68c85;
             --border: #e8e8e6;
         }
@@ -34,7 +31,7 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
-            font-family: 'Noto Serif TC', serif; /* 恢復文青字體 */
+            font-family: 'Noto Serif TC', serif;
             background-color: var(--bg);
             color: var(--text-main);
             margin: 0;
@@ -63,24 +60,19 @@
 
         .loading-box { text-align: center; color: #999; margin-top: 50px; font-size: 0.9rem; }
 
-        /* --- 圓形大頭貼樣式 (恢復) --- */
+        /* 大頭貼樣式 */
         .avatar-selector { display: flex; justify-content: center; gap: 18px; margin-bottom: 25px; flex-wrap: wrap; }
         .avatar-option { display: flex; flex-direction: column; align-items: center; cursor: pointer; opacity: 0.5; transition: all 0.3s ease; }
         .avatar-option.selected { opacity: 1; transform: translateY(-3px); }
-        
         .avatar-img {
-            width: 65px; height: 65px; 
-            border-radius: 50%; /* 變圓的關鍵 */
-            object-fit: cover; 
-            border: 3px solid #eee; 
-            padding: 2px; background: white; 
-            transition: border-color 0.3s;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            width: 65px; height: 65px; border-radius: 50%; object-fit: cover; 
+            border: 3px solid #eee; padding: 2px; background: white; 
+            transition: border-color 0.3s; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         .avatar-name { font-size: 0.85rem; margin-top: 8px; letter-spacing: 0.05em; font-weight: bold; }
 
-        /* 輸入框美化 */
-        .form-group { margin-bottom: 20px; position: relative; }
+        /* 輸入框 */
+        .form-group { margin-bottom: 20px; }
         label { display: block; margin-bottom: 6px; font-size: 0.8rem; color: var(--text-light); letter-spacing: 0.05em; }
         input[type="text"], input[type="number"], input[type="date"] {
             width: 100%; padding: 10px 0; border: none; border-bottom: 1px solid #ccc;
@@ -89,55 +81,58 @@
         }
         input:focus { border-bottom-color: var(--primary); }
 
-        /* 按鈕美化 */
+        /* 按鈕 */
         button.btn-main {
             width: 100%; padding: 12px; border: none; background-color: var(--primary); color: white;
             font-family: 'Noto Serif TC', serif; font-size: 1rem; letter-spacing: 0.1em;
             cursor: pointer; transition: opacity 0.3s; border-radius: 4px; margin-top: 10px;
         }
-        button.btn-main:active { opacity: 0.8; }
         button.btn-cancel {
             width: 100%; padding: 10px; border: none; background: transparent; color: #999;
             margin-top: 5px; cursor: pointer; font-size: 0.85rem;
         }
         
-        /* 上傳區美化 */
         .upload-area {
             border: 1px dashed #b0aaa0; padding: 15px; text-align: center; margin-top: 10px; 
             cursor: pointer; color: var(--text-light); font-size: 0.85rem; border-radius: 4px;
-            transition: background 0.2s;
         }
-        .upload-area:active { background: #f0f0f0; }
-        .preview-avatar {
-            width: 100px; height: 100px; border-radius: 50%; object-fit: cover;
-            margin: 15px auto; display: block; border: 4px solid #fff; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
+        .preview-avatar { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin: 15px auto; display: block; border: 4px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
 
         /* 列表樣式 */
-        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px dashed #eee; }
+        .list-group-header {
+            display: flex; align-items: center; border-bottom: 1px solid #eee; 
+            padding-bottom: 10px; margin-bottom: 5px; margin-top: 10px;
+        }
+        .list-header-avatar { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-right: 10px; }
+        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px dashed #eee; }
         .list-left { display: flex; align-items: center; gap: 15px; }
         .list-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1px solid #eee; }
-        .list-date { font-size: 0.75rem; color: var(--text-light); display: block; margin-bottom: 2px; }
+        .list-date { font-size: 0.85rem; color: var(--text-main); letter-spacing: 0.05em; }
         .list-weight { font-family: 'Noto Serif TC'; font-weight: 700; font-size: 1.1rem; color: var(--primary); }
         .list-actions { display: flex; align-items: center; gap: 8px; }
 
-        /* 選單 Tab */
         .tabs { display: flex; justify-content: center; margin-bottom: 30px; gap: 25px; }
-        .tab {
-            cursor: pointer; color: var(--text-light); padding-bottom: 5px; font-size: 0.95rem; 
-            letter-spacing: 0.1em; position: relative; transition: color 0.3s;
-        }
+        .tab { cursor: pointer; color: var(--text-light); padding-bottom: 5px; font-size: 0.95rem; letter-spacing: 0.1em; position: relative; transition: color 0.3s; }
         .tab.active { color: var(--text-main); font-weight: bold; }
         .tab.active::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 100%; height: 2px; background: var(--primary); }
 
         .btn-icon { background: none; border: none; color: #ccc; cursor: pointer; padding: 5px; font-size: 1.1rem; }
         .btn-icon:hover { color: var(--text-main); }
         
-        .alert-box {
-            background: #fff; border: 1px solid var(--danger); color: var(--danger);
-            padding: 12px; margin-bottom: 20px; font-size: 0.85rem; display: flex; align-items: center; gap: 10px; border-radius: 4px;
-        }
+        .alert-box { background: #fff; border: 1px solid var(--danger); color: var(--danger); padding: 12px; margin-bottom: 20px; font-size: 0.85rem; display: flex; align-items: center; gap: 10px; border-radius: 4px; }
+        
+        /* 裁切視窗 */
+        .crop-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.98); z-index: 1000; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .crop-area-wrapper { width: 280px; height: 280px; border: 1px solid #ddd; position: relative; overflow: hidden; background: #eee; border-radius: 4px; touch-action: none; cursor: move; box-shadow: inset 0 0 20px rgba(0,0,0,0.05); }
+        .crop-mask { pointer-events: none; position: absolute; top: 0; left: 0; bottom: 0; right: 0; border-radius: 50%; box-shadow: 0 0 0 300px rgba(255,255,255,0.8); border: 2px solid #666; z-index: 10; }
+        .crop-img { position: absolute; transform-origin: 0 0; max-width: none; display: block; }
+        .crop-controls { width: 280px; margin-top: 25px; display: flex; flex-direction: column; gap: 15px; }
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 20px; width: 20px; border-radius: 50%; background: #666; cursor: pointer; margin-top: -8px; }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #ddd; border-radius: 2px; }
+        .crop-btns { display: flex; gap: 15px; margin-top: 10px; }
+        .crop-btn { flex: 1; padding: 12px; border: 1px solid var(--text-main); background: transparent; cursor: pointer; letter-spacing: 1px; font-size: 0.9rem; }
+        .crop-btn.confirm { background: var(--text-main); color: white; border: none; }
     </style>
 </head>
 <body>
@@ -145,10 +140,7 @@
 <div id="app" class="container">
     <h1>貓の體重</h1>
 
-    <div v-if="loading" class="loading-box">
-        讀取中...
-        <br><small>連線中</small>
-    </div>
+    <div v-if="loading" class="loading-box">讀取中...<br><small>連線中</small></div>
 
     <div v-else>
         <div class="tabs">
@@ -159,9 +151,7 @@
 
         <div v-show="currentTab === 'record'">
             <div class="card">
-                <div style="text-align:center; margin-bottom:15px; font-weight:bold; color:var(--edit-color);" v-if="editingRecordId">
-                    ✎ 編輯模式
-                </div>
+                <div style="text-align:center; margin-bottom:15px; font-weight:bold; color:var(--edit-color);" v-if="editingRecordId">✎ 編輯模式</div>
                 <div v-if="healthAlert" class="alert-box"><span>⚠️</span> {{ healthAlert }}</div>
                 
                 <div v-if="cats.length === 0" style="text-align:center; color:#999; padding:20px;">請先至「設定」新增貓咪</div>
@@ -175,15 +165,8 @@
                             <span class="avatar-name" :style="{ color: newEntry.catId === cat.id ? cat.color : '' }">{{ cat.name }}</span>
                         </div>
                     </div>
-
-                    <div class="form-group">
-                        <label>日期 Date</label>
-                        <input type="date" v-model="newEntry.date">
-                    </div>
-                    <div class="form-group">
-                        <label>體重 Weight (kg)</label>
-                        <input type="number" step="0.01" inputmode="decimal" v-model.number="newEntry.weight" placeholder="0.00">
-                    </div>
+                    <div class="form-group"><label>日期 Date</label><input type="date" v-model="newEntry.date"></div>
+                    <div class="form-group"><label>體重 Weight (kg)</label><input type="number" step="0.01" inputmode="decimal" v-model.number="newEntry.weight" placeholder="0.00"></div>
                     
                     <button class="btn-main" @click="saveRecord" :style="{ backgroundColor: editingRecordId ? '#54a0ff' : getSelectedCatColor }">
                         {{ editingRecordId ? '更新紀錄' : '儲存紀錄' }}
@@ -193,30 +176,33 @@
             </div>
             
             <div v-if="records.length > 0">
-                <div style="font-size:0.75rem; color:#aaa; text-align:center; margin-bottom:10px; letter-spacing:1px;">RECENT</div>
-                <div class="card" style="padding: 10px 20px;">
-                    <div v-for="rec in displayedRecords" :key="rec.id" class="list-item">
+                <div style="font-size:0.75rem; color:#aaa; text-align:center; margin-bottom:10px; letter-spacing:1px;">HISTORY</div>
+                
+                <div v-for="group in recordsByCat" :key="group.cat.id" class="card" style="padding: 10px 20px;">
+                    <div class="list-group-header">
+                        <img :src="group.cat.avatar || defaultAvatar" class="list-header-avatar" :style="{ borderColor: group.cat.color }">
+                        <span :style="{ fontWeight:'bold', color: group.cat.color }">{{ group.cat.name }}</span>
+                    </div>
+
+                    <div v-for="rec in group.records" :key="rec.id" class="list-item">
                         <div class="list-left">
-                            <img :src="getCatAvatar(rec.catId)" class="list-avatar">
-                            <div>
-                                <span class="list-date">{{ formatDate(rec.date) }}</span>
-                                <span style="font-size:0.9rem; font-weight:500;">{{ getCatName(rec.catId) }}</span>
-                            </div>
+                            <span class="list-date">{{ formatDate(rec.date) }}</span>
                         </div>
                         <div class="list-actions">
-                            <span class="list-weight" :style="{ color: getCatColor(rec.catId) }">{{ rec.weight }}</span>
+                            <span class="list-weight" :style="{ color: group.cat.color }">{{ rec.weight }}</span>
                             <button class="btn-icon" @click="editRecord(rec)">✎</button>
                             <button class="btn-icon" @click="deleteRecord(rec.id)">✕</button>
                         </div>
                     </div>
                     
-                    <div v-if="!showAllHistory && records.length > 5" 
+                    <div v-if="!showAllHistory && group.hasMore" 
                          style="text-align:center; padding-top:10px; cursor:pointer; color:#999; font-size:0.8rem;"
                          @click="showAllHistory = true">▼ 查看全部</div>
-                    <div v-if="showAllHistory" 
-                         style="text-align:center; padding-top:10px; cursor:pointer; color:#999; font-size:0.8rem;"
-                         @click="showAllHistory = false">▲ 收起</div>
                 </div>
+                
+                <div v-if="showAllHistory" 
+                     style="text-align:center; padding-bottom:20px; cursor:pointer; color:#999; font-size:0.8rem;"
+                     @click="showAllHistory = false">▲ 收起全部</div>
             </div>
         </div>
 
@@ -235,25 +221,14 @@
         <div v-show="currentTab === 'settings'">
             <div class="card">
                 <div style="text-align:center; margin-bottom:20px; font-weight:bold;">{{ isEditing ? '編輯資料' : '新增貓咪' }}</div>
-                
                 <div class="form-group" style="text-align:center;">
                     <img v-if="newCatData.avatarPreview" :src="newCatData.avatarPreview" class="preview-avatar">
                     <img v-else :src="defaultAvatar" class="preview-avatar" style="opacity:0.3;">
-                    
-                    <div class="upload-area" @click="triggerUpload">
-                        {{ newCatData.avatarPreview ? '更換照片' : '點此上傳照片' }}
-                    </div>
+                    <div class="upload-area" @click="triggerUpload">{{ newCatData.avatarPreview ? '更換照片' : '點此上傳照片' }}</div>
                     <input type="file" ref="fileInput" @change="onFileSelect" accept="image/*" style="display:none;">
                 </div>
-
-                <div class="form-group">
-                    <label>名字 Name</label>
-                    <input type="text" v-model="newCatData.name" placeholder="輸入貓咪名字..." @keyup.enter="saveCat">
-                </div>
-
-                <button class="btn-main" @click="saveCat" :style="{background: isEditing ? '#54a0ff' : ''}">
-                    {{ isEditing ? '更新資料' : '新增貓咪' }}
-                </button>
+                <div class="form-group"><label>名字 Name</label><input type="text" v-model="newCatData.name" placeholder="輸入貓咪名字..." @keyup.enter="saveCat"></div>
+                <button class="btn-main" @click="saveCat" :style="{background: isEditing ? '#54a0ff' : ''}">{{ isEditing ? '更新資料' : '新增貓咪' }}</button>
                 <button v-if="isEditing" @click="cancelEdit" class="btn-cancel">取消編輯</button>
             </div>
             
@@ -263,11 +238,25 @@
                         <img :src="cat.avatar || defaultAvatar" class="list-avatar" :style="{ border: '2px solid ' + cat.color }">
                         <span style="font-weight:bold; color:#555;">{{ cat.name }}</span>
                     </div>
-                    <div>
-                        <button class="btn-icon" @click="editCat(cat)">✎</button>
-                        <button class="btn-icon" @click="removeCat(cat.id)">✕</button>
-                    </div>
+                    <div><button class="btn-icon" @click="editCat(cat)">✎</button><button class="btn-icon" @click="removeCat(cat.id)">✕</button></div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <div v-if="showCropper" class="crop-modal">
+        <div class="crop-area-wrapper" 
+             @mousedown="startDrag" @mousemove="onDrag" @mouseup="stopDrag" @mouseleave="stopDrag"
+             @touchstart="startDrag" @touchmove="onDrag" @touchend="stopDrag">
+            <img ref="cropImg" :src="cropper.imgSrc" class="crop-img" :style="cropStyle" @load="onImgLoad">
+            <div class="crop-mask"></div>
+        </div>
+        <div class="crop-controls">
+            <div class="zoom-label">調整縮放與位置</div>
+            <input type="range" min="0.1" max="3" step="0.05" v-model.number="cropper.userScale" class="zoom-range">
+            <div class="crop-btns">
+                <button class="crop-btn" @click="cancelCrop">取消</button>
+                <button class="crop-btn confirm" @click="confirmCrop">完成</button>
             </div>
         </div>
     </div>
@@ -308,10 +297,11 @@
             const isEditing = computed(() => editingCatId.value !== null);
             let chartInstance = null;
 
-            // 鮮豔配色
             const colors = ['#3498db', '#e67e22', '#2ecc71', '#9b59b6', '#e74c3c', '#1abc9c', '#f1c40f'];
+            const showCropper = ref(false);
+            const cropImg = ref(null);
+            const cropper = ref({ imgSrc: '', baseScale: 1, userScale: 1, x: 0, y: 0, isDragging: false, startX: 0, startY: 0, lastX: 0, lastY: 0 });
 
-            // 確保 3 秒後不卡住
             setTimeout(() => { if(loading.value) loading.value = false; }, 3000);
 
             onMounted(() => {
@@ -329,64 +319,48 @@
                 });
             });
 
-            // 圖片處理核心：自動縮小 + 正方形裁切 (取代複雜的手動裁切器)
-            const triggerUpload = () => fileInput.value.click();
-            const onFileSelect = (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = (evt) => {
-                    const img = new Image();
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        const ctx = canvas.getContext('2d');
-                        // 設定目標大小 200x200 (夠清晰且檔案小)
-                        const size = 200;
-                        canvas.width = size;
-                        canvas.height = size;
-                        
-                        // 計算「置中裁切」的參數 (Cover 模式)
-                        let sWidth = img.width;
-                        let sHeight = img.height;
-                        let sx = 0; 
-                        let sy = 0;
-                        
-                        if (sWidth > sHeight) {
-                            sWidth = sHeight;
-                            sx = (img.width - sHeight) / 2;
-                        } else {
-                            sHeight = sWidth;
-                            sy = (img.height - sWidth) / 2;
-                        }
-                        
-                        // 畫上去
-                        ctx.fillStyle = "#fff";
-                        ctx.fillRect(0, 0, size, size);
-                        ctx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, size, size);
-                        
-                        // 轉成 Base64
-                        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
-                        newCatData.value.avatarPreview = dataUrl;
-                        newCatData.value.avatarBase64 = dataUrl;
-                        e.target.value = ''; // 清空 input 讓同一張圖可再選
+            // 核心功能：自動分類紀錄 (Records grouped by Cat)
+            const recordsByCat = computed(() => {
+                // 遍歷所有貓咪，找出屬於牠們的紀錄
+                return cats.value.map(cat => {
+                    const catRecords = records.value
+                        .filter(r => r.catId === cat.id) // 過濾出這隻貓的
+                        .sort((a, b) => new Date(b.date) - new Date(a.date)); // 日期新到舊排序
+                    
+                    // 如果沒有展開，只顯示前 3 筆
+                    const display = showAllHistory.value ? catRecords : catRecords.slice(0, 3);
+                    
+                    return {
+                        cat: cat,
+                        records: display,
+                        hasMore: catRecords.length > 3 // 判斷是否需要顯示「更多」按鈕
                     };
-                    img.src = evt.target.result;
-                };
-                reader.readAsDataURL(file);
-            };
+                }).filter(group => group.records.length > 0); // 只顯示有紀錄的貓咪
+            });
 
-            // 貓咪 CRUD
+            const triggerUpload = () => fileInput.value.click();
+            const onFileSelect = (e) => { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (evt) => { cropper.value = { imgSrc: evt.target.result, baseScale: 1, userScale: 1, x: 0, y: 0, isDragging: false, startX: 0, startY: 0, lastX: 0, lastY: 0 }; showCropper.value = true; e.target.value = ''; }; reader.readAsDataURL(file); };
+            const onImgLoad = (e) => { const img = e.target; const ratio = 280 / Math.min(img.naturalWidth, img.naturalHeight); cropper.value.baseScale = ratio; cropper.value.userScale = 1; cropper.value.x = (280 - img.naturalWidth * ratio) / 2; cropper.value.y = (280 - img.naturalHeight * ratio) / 2; cropper.value.lastX = cropper.value.x; cropper.value.lastY = cropper.value.y; };
+            const finalScale = computed(() => cropper.value.baseScale * cropper.value.userScale);
+            const cropStyle = computed(() => ({ transform: `translate(${cropper.value.x}px, ${cropper.value.y}px) scale(${finalScale.value})` }));
+            const getClientPos = (e) => e.touches ? { x: e.touches[0].clientX, y: e.touches[0].clientY } : { x: e.clientX, y: e.clientY };
+            const startDrag = (e) => { cropper.value.isDragging = true; const pos = getClientPos(e); cropper.value.startX = pos.x; cropper.value.startY = pos.y; };
+            const onDrag = (e) => { if (!cropper.value.isDragging) return; e.preventDefault(); const pos = getClientPos(e); cropper.value.x = cropper.value.lastX + (pos.x - cropper.value.startX); cropper.value.y = cropper.value.lastY + (pos.y - cropper.value.startY); };
+            const stopDrag = () => { cropper.value.isDragging = false; cropper.value.lastX = cropper.value.x; cropper.value.lastY = cropper.value.y; };
+            const confirmCrop = () => { const cvs = document.createElement('canvas'); const ctx = cvs.getContext('2d'); cvs.width = 200; cvs.height = 200; ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, 200, 200); const ratio = 200/280; ctx.save(); ctx.scale(ratio, ratio); ctx.translate(cropper.value.x, cropper.value.y); ctx.scale(finalScale.value, finalScale.value); ctx.drawImage(cropImg.value, 0, 0); ctx.restore(); newCatData.value.avatarPreview = cvs.toDataURL('image/jpeg', 0.85); newCatData.value.avatarBase64 = newCatData.value.avatarPreview; showCropper.value = false; };
+            const cancelCrop = () => showCropper.value = false;
+            
+            const getCatName = (id) => cats.value.find(c => c.id === id)?.name;
+            const getCatAvatar = (id) => cats.value.find(c => c.id === id)?.avatar || defaultAvatar;
+            const getCatColor = (id) => cats.value.find(c => c.id === id)?.color || '#ccc';
+            const getSelectedCatColor = computed(() => getCatColor(newEntry.value.catId));
+            const formatDate = (s) => s.replace(/-/g, '.');
+
             const editCat = (cat) => { editingCatId.value = cat.id; newCatData.value = { name: cat.name, avatarPreview: cat.avatar, avatarBase64: cat.avatar }; window.scrollTo({ top: 0, behavior: 'smooth' }); };
             const cancelEdit = () => { editingCatId.value = null; newCatData.value = { name: '', avatarPreview: null, avatarBase64: null }; };
-            const saveCat = () => {
-                if(!newCatData.value.name.trim()) return alert('請輸入名字');
-                const payload = { name: newCatData.value.name, avatar: newCatData.value.avatarBase64 || null };
-                if(isEditing.value) db.ref(`cats/${editingCatId.value}`).update(payload).then(()=>{ cancelEdit(); alert('已更新'); });
-                else { payload.color = colors[cats.value.length % colors.length]; db.ref('cats').push(payload).then(()=>{ cancelEdit(); alert('已新增'); }); }
-            };
+            const saveCat = () => { if(!newCatData.value.name.trim()) return alert('請輸入名字'); const payload = { name: newCatData.value.name, avatar: newCatData.value.avatarBase64 || null }; if(isEditing.value) db.ref(`cats/${editingCatId.value}`).update(payload).then(()=>{ cancelEdit(); alert('已更新'); }); else { payload.color = colors[cats.value.length % colors.length]; db.ref('cats').push(payload).then(()=>{ cancelEdit(); alert('已新增'); }); } };
             const removeCat = (id) => confirm('刪除後無法復原，確定？') && db.ref(`cats/${id}`).remove();
 
-            // 紀錄 CRUD
             const editRecord = (rec) => { editingRecordId.value = rec.id; newEntry.value = { catId: rec.catId, date: rec.date, weight: rec.weight }; window.scrollTo({ top: 0, behavior: 'smooth' }); };
             const cancelRecordEdit = () => { editingRecordId.value = null; newEntry.value = { catId: cats.value.length ? cats.value[0].id : '', date: new Date().toISOString().split('T')[0], weight: '' }; healthAlert.value = ''; };
             const deleteRecord = (id) => confirm('刪除此紀錄？') && db.ref(`records/${id}`).remove();
@@ -395,8 +369,6 @@
                 if(!newEntry.value.catId || !newEntry.value.weight) return alert('資料不全');
                 const inputDate = new Date(newEntry.value.date);
                 const inputWeight = parseFloat(newEntry.value.weight);
-                
-                // 健康檢查
                 const catRecs = records.value.filter(r => r.catId === newEntry.value.catId && r.id !== editingRecordId.value).sort((a, b) => new Date(a.date) - new Date(b.date));
                 if(catRecs.length > 0) {
                     const last = catRecs[catRecs.length - 1];
@@ -405,23 +377,10 @@
                         healthAlert.value = (Math.abs(diff)/last.weight >= 0.05) ? `注意：${getCatName(newEntry.value.catId)} 體重變化 ${(diff>0?'+':'')}${diff.toFixed(2)}kg` : '';
                     } else healthAlert.value = '';
                 }
-
-                if(editingRecordId.value) {
-                    db.ref(`records/${editingRecordId.value}`).update({ catId: newEntry.value.catId, date: newEntry.value.date, weight: inputWeight }).then(()=>{ alert('已更新'); cancelRecordEdit(); });
-                } else {
-                    db.ref('records').push({ catId: newEntry.value.catId, date: newEntry.value.date, weight: inputWeight }).then(()=>{ alert('已記錄'); newEntry.value.weight = ''; });
-                }
+                if (editingRecordId.value) { db.ref(`records/${editingRecordId.value}`).update({ catId: newEntry.value.catId, date: newEntry.value.date, weight: inputWeight }).then(()=>{ alert('已更新'); cancelRecordEdit(); }); }
+                else { db.ref('records').push({ catId: newEntry.value.catId, date: newEntry.value.date, weight: inputWeight }).then(()=>{ alert('已記錄'); newEntry.value.weight = ''; }); }
             };
 
-            // Helpers
-            const getCatName = (id) => cats.value.find(c=>c.id===id)?.name || '未知';
-            const getCatAvatar = (id) => cats.value.find(c=>c.id===id)?.avatar || defaultAvatar;
-            const getCatColor = (id) => cats.value.find(c=>c.id===id)?.color || '#ccc';
-            const getSelectedCatColor = computed(() => getCatColor(newEntry.value.catId));
-            const formatDate = (d) => d.replace(/-/g, '.');
-            const displayedRecords = computed(() => { const sorted = [...records.value].sort((a,b)=>new Date(b.date)-new Date(a.date)); return showAllHistory.value ? sorted : sorted.slice(0, 10); });
-
-            // Chart
             watch(currentTab, (v) => v === 'chart' && nextTick(renderChart));
             const renderChart = () => {
                 const ctx = document.getElementById('weightChart'); if(!ctx) return;
@@ -429,21 +388,17 @@
                 const datasets = cats.value.map(cat => ({
                     label: cat.name,
                     data: allDates.map(d => records.value.filter(r => r.catId === cat.id).find(r => r.date === d)?.weight || null),
-                    borderColor: cat.color, backgroundColor: cat.color,
-                    tension: 0.3, borderDash: [2, 2], pointRadius: 4, pointBackgroundColor: '#fff', spanGaps: true
+                    borderColor: cat.color, backgroundColor: cat.color, tension: 0, borderDash: [2, 2], pointRadius: 4, pointBackgroundColor: '#fff', spanGaps: true
                 }));
                 if(chartInstance) chartInstance.destroy();
-                chartInstance = new Chart(ctx, { 
-                    type: 'line', 
-                    data: { labels: allDates.map(d=>d.slice(5).replace('-','.')), datasets },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { grid: { color: '#f0f0f0' }, border: { display: false } } } } 
-                });
+                chartInstance = new Chart(ctx, { type: 'line', data: { labels: allDates.map(d=>d.slice(5).replace('-','.')), datasets }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { grid: { color: '#f0f0f0' }, border: { display: false } } } } });
             };
 
             return { 
-                currentTab, cats, records, loading, healthAlert, defaultAvatar, newEntry, newCatData, isEditing, 
-                editingRecordId, showAllHistory, fileInput, displayedRecords, getCatName, getCatAvatar, getCatColor, getSelectedCatColor, formatDate,
-                triggerUpload, onFileSelect, saveCat, editCat, cancelEdit, removeCat, saveRecord, editRecord, deleteRecord, cancelRecordEdit
+                currentTab, cats, records, recordsByCat, loading, healthAlert, defaultAvatar, newEntry, newCatData, isEditing, 
+                editingRecordId, showAllHistory, fileInput, getCatName, getCatAvatar, getCatColor, getSelectedCatColor, formatDate,
+                triggerUpload, onFileSelect, saveCat, editCat, cancelEdit, removeCat, saveRecord, editRecord, deleteRecord, cancelRecordEdit,
+                showCropper, cropper, cropImg, startDrag, onDrag, stopDrag, confirmCrop, cancelCrop, cropStyle, onImgLoad
             };
         }
     }).mount('#app');
