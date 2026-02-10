@@ -13,6 +13,13 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;500;700&display=swap" rel="stylesheet">
     
+    <script>
+        window.onerror = function(msg, url, line) {
+            alert("發生錯誤：\n" + msg + "\n行數：" + line);
+            return false;
+        };
+    </script>
+
     <style>
         :root {
             --bg: #f9f8f6;       
@@ -55,10 +62,8 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.02);
         }
 
-        /* 讀取中樣式 */
         .loading-box { text-align: center; color: #999; margin-top: 50px; }
 
-        /* 元件樣式 */
         .avatar-selector { display: flex; justify-content: center; gap: 20px; margin-bottom: 30px; flex-wrap: wrap; }
         .avatar-option { display: flex; flex-direction: column; align-items: center; cursor: pointer; opacity: 0.6; transition: all 0.4s ease; }
         .avatar-option.selected { opacity: 1; transform: translateY(-3px); }
@@ -105,7 +110,6 @@
         
         .alert-box { background: #fff; border: 1px solid var(--danger); color: var(--danger); padding: 15px; margin-bottom: 25px; font-size: 0.9rem; display: flex; align-items: center; gap: 10px; }
         
-        /* 裁切視窗 */
         .crop-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.98); z-index: 1000; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         .crop-area-wrapper { width: 280px; height: 280px; border: 1px solid #ddd; position: relative; overflow: hidden; background: #eee; border-radius: 4px; touch-action: none; cursor: move; box-shadow: inset 0 0 20px rgba(0,0,0,0.05); }
         .crop-mask { pointer-events: none; position: absolute; top: 0; left: 0; bottom: 0; right: 0; border-radius: 50%; box-shadow: 0 0 0 300px rgba(255,255,255,0.8); border: 2px solid #666; z-index: 10; }
@@ -260,7 +264,6 @@
 <script>
     const { createApp, ref, computed, onMounted, watch, nextTick } = Vue;
 
-    // 🔥 Firebase 設定 (已確認沒問題)
     const firebaseConfig = {
       apiKey: "AIzaSyB62SzNqiusoXCbCpDHS1vCiuS70ZHVDUE",
       authDomain: "catweight-d4888.firebaseapp.com",
@@ -271,114 +274,107 @@
       appId: "1:527733046362:web:d1bd552108e6c03f8d6c63"
     };
 
-    // 初始化 Firebase (v8 寫法，穩定)
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-    }
-    const db = firebase.database();
-
-    createApp({
-        setup() {
-            const currentTab = ref('record');
-            const cats = ref([]);
-            const records = ref([]);
-            const loading = ref(true); // 預設讀取中
-            const healthAlert = ref('');
-            const fileInput = ref(null);
-            const defaultAvatar = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23e0e0e0'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z'/%3E%3C/svg%3E";
-
-            const newEntry = ref({ catId: '', date: new Date().toISOString().split('T')[0], weight: '' });
-            const editingRecordId = ref(null);
-            const showAllHistory = ref(false);
-
-            const newCatData = ref({ name: '', avatarPreview: null, avatarBase64: null });
-            const editingCatId = ref(null);
-            const isEditing = computed(() => editingCatId.value !== null);
-            const hiddenDatasets = ref({});
-            let chartInstance = null;
-
-            const colors = ['#3498db', '#e67e22', '#2ecc71', '#9b59b6', '#e74c3c', '#1abc9c', '#f1c40f'];
-            const showCropper = ref(false);
-            const cropImg = ref(null);
-            const cropper = ref({ imgSrc: '', baseScale: 1, userScale: 1, x: 0, y: 0, isDragging: false, startX: 0, startY: 0, lastX: 0, lastY: 0 });
-
-            // 強制安全閥：如果 3 秒後還在讀取，強制關閉 loading (避免卡死)
-            setTimeout(() => { if(loading.value) loading.value = false; }, 3000);
-
-            onMounted(() => {
-                // 監聽貓咪資料
-                db.ref('cats').on('value', (snapshot) => {
-                    const data = snapshot.val();
-                    cats.value = data ? Object.entries(data).map(([key, val]) => ({ id: key, ...val })) : [];
-                    // 確保有選中一隻貓
-                    if (cats.value.length && !newEntry.value.catId && !editingRecordId.value) newEntry.value.catId = cats.value[0].id;
-                    loading.value = false; // 收到資料，關閉 loading
-                    if(currentTab.value === 'chart') renderChart();
-                }, (error) => {
-                    // 發生錯誤，用 alert 顯示，並關閉 loading 讓介面跑出來
-                    alert("連線錯誤: " + error.message);
-                    loading.value = false;
-                });
-
-                // 監聽體重紀錄
-                db.ref('records').on('value', (snapshot) => {
-                    const data = snapshot.val();
-                    records.value = data ? Object.entries(data).map(([key, val]) => ({ id: key, ...val })) : [];
-                    records.value.sort((a, b) => new Date(a.date) - new Date(b.date));
-                    if(currentTab.value === 'chart') renderChart();
-                });
-            });
-
-            // 其餘功能函式 (裁切、編輯、儲存等)
-            const editRecord = (rec) => { editingRecordId.value = rec.id; newEntry.value = { catId: rec.catId, date: rec.date, weight: rec.weight }; window.scrollTo({ top: 0, behavior: 'smooth' }); };
-            const cancelRecordEdit = () => { editingRecordId.value = null; newEntry.value = { catId: cats.value.length ? cats.value[0].id : '', date: new Date().toISOString().split('T')[0], weight: '' }; healthAlert.value = ''; };
-            const deleteRecord = (id) => { if(confirm('刪除紀錄？')) { db.ref(`records/${id}`).remove(); if(editingRecordId.value === id) cancelRecordEdit(); }};
-
-            const saveRecord = () => {
-                if(!newEntry.value.catId || !newEntry.value.weight) return alert('資料不全');
-                const inputDate = new Date(newEntry.value.date);
-                const inputWeight = parseFloat(newEntry.value.weight);
-                const catRecs = records.value.filter(r => r.catId === newEntry.value.catId && r.id !== editingRecordId.value).sort((a, b) => new Date(a.date) - new Date(b.date));
-                if(catRecs.length > 0) {
-                    const last = catRecs[catRecs.length - 1];
-                    if (inputDate >= new Date(last.date)) {
-                        const diff = inputWeight - last.weight;
-                        healthAlert.value = (Math.abs(diff)/last.weight >= 0.05) ? `注意：${getCatName(newEntry.value.catId)} 體重變化 ${(diff>0?'+':'')}${diff.toFixed(2)}kg` : '';
-                    } else healthAlert.value = '';
-                }
-                if (editingRecordId.value) { db.ref(`records/${editingRecordId.value}`).update({ catId: newEntry.value.catId, date: newEntry.value.date, weight: inputWeight }).then(() => { alert('已更新'); cancelRecordEdit(); }); }
-                else { db.ref('records').push({ catId: newEntry.value.catId, date: newEntry.value.date, weight: inputWeight }).then(() => { alert('已記錄'); newEntry.value.weight = ''; }); }
-            };
-
-            const displayedRecords = computed(() => { const sorted = [...records.value].sort((a,b) => new Date(b.date) - new Date(a.date)); return showAllHistory.value ? sorted : sorted.slice(0, 5); });
-            const triggerUpload = () => fileInput.value.click();
-            const onFileSelect = (e) => { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (evt) => { cropper.value = { imgSrc: evt.target.result, baseScale: 1, userScale: 1, x: 0, y: 0, isDragging: false, startX: 0, startY: 0, lastX: 0, lastY: 0 }; showCropper.value = true; e.target.value = ''; }; reader.readAsDataURL(file); };
-            const onImgLoad = (e) => { const img = e.target; const ratio = 280 / Math.min(img.naturalWidth, img.naturalHeight); cropper.value.baseScale = ratio; cropper.value.userScale = 1; cropper.value.x = (280 - img.naturalWidth * ratio) / 2; cropper.value.y = (280 - img.naturalHeight * ratio) / 2; cropper.value.lastX = cropper.value.x; cropper.value.lastY = cropper.value.y; };
-            const finalScale = computed(() => cropper.value.baseScale * cropper.value.userScale);
-            const cropStyle = computed(() => ({ transform: `translate(${cropper.value.x}px, ${cropper.value.y}px) scale(${finalScale.value})` }));
-            const getClientPos = (e) => e.touches ? { x: e.touches[0].clientX, y: e.touches[0].clientY } : { x: e.clientX, y: e.clientY };
-            const startDrag = (e) => { cropper.value.isDragging = true; const pos = getClientPos(e); cropper.value.startX = pos.x; cropper.value.startY = pos.y; };
-            const onDrag = (e) => { if (!cropper.value.isDragging) return; e.preventDefault(); const pos = getClientPos(e); cropper.value.x = cropper.value.lastX + (pos.x - cropper.value.startX); cropper.value.y = cropper.value.lastY + (pos.y - cropper.value.startY); };
-            const stopDrag = () => { cropper.value.isDragging = false; cropper.value.lastX = cropper.value.x; cropper.value.lastY = cropper.value.y; };
-            const confirmCrop = () => { const cvs = document.createElement('canvas'); const ctx = cvs.getContext('2d'); cvs.width = 200; cvs.height = 200; ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, 200, 200); const ratio = 200/280; ctx.save(); ctx.scale(ratio, ratio); ctx.translate(cropper.value.x, cropper.value.y); ctx.scale(finalScale.value, finalScale.value); ctx.drawImage(cropImg.value, 0, 0); ctx.restore(); newCatData.value.avatarPreview = cvs.toDataURL('image/jpeg', 0.85); newCatData.value.avatarBase64 = newCatData.value.avatarPreview; showCropper.value = false; };
-            const cancelCrop = () => showCropper.value = false;
-            const getCatName = (id) => cats.value.find(c => c.id === id)?.name;
-            const getCatAvatar = (id) => cats.value.find(c => c.id === id)?.avatar || defaultAvatar;
-            const getCatColor = (id) => cats.value.find(c => c.id === id)?.color || '#ccc';
-            const getSelectedCatColor = computed(() => getCatColor(newEntry.value.catId));
-            const formatDate = (s) => s.replace(/-/g, '.');
-            const editCat = (cat) => { editingCatId.value = cat.id; newCatData.value = { name: cat.name, avatarPreview: cat.avatar, avatarBase64: cat.avatar }; window.scrollTo({ top: 0, behavior: 'smooth' }); };
-            const cancelEdit = () => { editingCatId.value = null; newCatData.value = { name: '', avatarPreview: null, avatarBase64: null }; };
-            const saveCat = () => { if(!newCatData.value.name.trim()) return alert('請輸入名字'); const payload = { name: newCatData.value.name, avatar: newCatData.value.avatarBase64 || null }; if(isEditing.value) db.ref(`cats/${editingCatId.value}`).update(payload).then(()=>{ cancelEdit(); alert('已更新'); }); else { payload.color = colors[cats.value.length % colors.length]; db.ref('cats').push(payload).then(()=>{ cancelEdit(); alert('已新增'); }); } };
-            const removeCat = (id) => confirm('刪除後無法復原，確定？') && db.ref(`cats/${id}`).remove();
-            watch(currentTab, (v) => v === 'chart' && nextTick(renderChart));
-            const isDatasetHidden = (i) => !!hiddenDatasets.value[i];
-            const toggleDataset = (i) => { const meta = chartInstance.getDatasetMeta(i); meta.hidden = meta.hidden === null ? !chartInstance.data.datasets[i].hidden : !meta.hidden; hiddenDatasets.value[i] = meta.hidden; chartInstance.update(); };
-            const renderChart = () => { const ctx = document.getElementById('weightChart'); if(!ctx) return; const allDates = [...new Set(records.value.map(r => r.date))].sort(); const datasets = cats.value.map(cat => ({ label: cat.name, data: allDates.map(d => records.value.filter(r => r.catId === cat.id).find(r => r.date === d)?.weight || null), borderColor: cat.color, backgroundColor: cat.color, tension: 0, borderDash: [2, 2], pointRadius: 4, pointBackgroundColor: '#fff', spanGaps: true })); if(chartInstance) chartInstance.destroy(); chartInstance = new Chart(ctx, { type: 'line', data: { labels: allDates.map(d=>d.slice(5).replace('-','.')), datasets }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { grid: { color: '#f0f0f0' }, border: { display: false } } } } }); hiddenDatasets.value = {}; };
-
-            return { currentTab, cats, displayedRecords, newEntry, newCatData, isEditing, loading, healthAlert, defaultAvatar, saveRecord, editRecord, deleteRecord, cancelRecordEdit, editingRecordId, showAllHistory, saveCat, editCat, cancelEdit, removeCat, getCatName, getCatAvatar, formatDate, getCatColor, getSelectedCatColor, triggerUpload, fileInput, onFileSelect, showCropper, cropper, cropImg, startDrag, onDrag, stopDrag, confirmCrop, cancelCrop, cropStyle, onImgLoad, isDatasetHidden, toggleDataset };
+    try {
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
         }
-    }).mount('#app');
+        const db = firebase.database();
+
+        createApp({
+            setup() {
+                const currentTab = ref('record');
+                const cats = ref([]);
+                const records = ref([]);
+                const loading = ref(true);
+                const healthAlert = ref('');
+                const fileInput = ref(null);
+                const defaultAvatar = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23e0e0e0'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z'/%3E%3C/svg%3E";
+
+                const newEntry = ref({ catId: '', date: new Date().toISOString().split('T')[0], weight: '' });
+                const editingRecordId = ref(null);
+                const showAllHistory = ref(false);
+
+                const newCatData = ref({ name: '', avatarPreview: null, avatarBase64: null });
+                const editingCatId = ref(null);
+                const isEditing = computed(() => editingCatId.value !== null);
+                const hiddenDatasets = ref({});
+                let chartInstance = null;
+
+                const colors = ['#3498db', '#e67e22', '#2ecc71', '#9b59b6', '#e74c3c', '#1abc9c', '#f1c40f'];
+                const showCropper = ref(false);
+                const cropImg = ref(null);
+                const cropper = ref({ imgSrc: '', baseScale: 1, userScale: 1, x: 0, y: 0, isDragging: false, startX: 0, startY: 0, lastX: 0, lastY: 0 });
+
+                onMounted(() => {
+                    db.ref('cats').on('value', (snapshot) => {
+                        const data = snapshot.val();
+                        cats.value = data ? Object.entries(data).map(([key, val]) => ({ id: key, ...val })) : [];
+                        if (cats.value.length && !newEntry.value.catId && !editingRecordId.value) newEntry.value.catId = cats.value[0].id;
+                        loading.value = false;
+                        if(currentTab.value === 'chart') renderChart();
+                    });
+
+                    db.ref('records').on('value', (snapshot) => {
+                        const data = snapshot.val();
+                        records.value = data ? Object.entries(data).map(([key, val]) => ({ id: key, ...val })) : [];
+                        records.value.sort((a, b) => new Date(a.date) - new Date(b.date));
+                        if(currentTab.value === 'chart') renderChart();
+                    });
+                });
+
+                // Functions
+                const editRecord = (rec) => { editingRecordId.value = rec.id; newEntry.value = { catId: rec.catId, date: rec.date, weight: rec.weight }; window.scrollTo({ top: 0, behavior: 'smooth' }); };
+                const cancelRecordEdit = () => { editingRecordId.value = null; newEntry.value = { catId: cats.value.length ? cats.value[0].id : '', date: new Date().toISOString().split('T')[0], weight: '' }; healthAlert.value = ''; };
+                const deleteRecord = (id) => { if(confirm('刪除紀錄？')) { db.ref(`records/${id}`).remove(); if(editingRecordId.value === id) cancelRecordEdit(); }};
+
+                const saveRecord = () => {
+                    if(!newEntry.value.catId || !newEntry.value.weight) return alert('資料不全');
+                    const inputDate = new Date(newEntry.value.date);
+                    const inputWeight = parseFloat(newEntry.value.weight);
+                    const catRecs = records.value.filter(r => r.catId === newEntry.value.catId && r.id !== editingRecordId.value).sort((a, b) => new Date(a.date) - new Date(b.date));
+                    if(catRecs.length > 0) {
+                        const last = catRecs[catRecs.length - 1];
+                        if (inputDate >= new Date(last.date)) {
+                            const diff = inputWeight - last.weight;
+                            healthAlert.value = (Math.abs(diff)/last.weight >= 0.05) ? `注意：${getCatName(newEntry.value.catId)} 體重變化 ${(diff>0?'+':'')}${diff.toFixed(2)}kg` : '';
+                        } else healthAlert.value = '';
+                    }
+                    if (editingRecordId.value) { db.ref(`records/${editingRecordId.value}`).update({ catId: newEntry.value.catId, date: newEntry.value.date, weight: inputWeight }).then(() => { alert('已更新'); cancelRecordEdit(); }); }
+                    else { db.ref('records').push({ catId: newEntry.value.catId, date: newEntry.value.date, weight: inputWeight }).then(() => { alert('已記錄'); newEntry.value.weight = ''; }); }
+                };
+
+                const displayedRecords = computed(() => { const sorted = [...records.value].sort((a,b) => new Date(b.date) - new Date(a.date)); return showAllHistory.value ? sorted : sorted.slice(0, 5); });
+                const triggerUpload = () => fileInput.value.click();
+                const onFileSelect = (e) => { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (evt) => { cropper.value = { imgSrc: evt.target.result, baseScale: 1, userScale: 1, x: 0, y: 0, isDragging: false, startX: 0, startY: 0, lastX: 0, lastY: 0 }; showCropper.value = true; e.target.value = ''; }; reader.readAsDataURL(file); };
+                const onImgLoad = (e) => { const img = e.target; const ratio = 280 / Math.min(img.naturalWidth, img.naturalHeight); cropper.value.baseScale = ratio; cropper.value.userScale = 1; cropper.value.x = (280 - img.naturalWidth * ratio) / 2; cropper.value.y = (280 - img.naturalHeight * ratio) / 2; cropper.value.lastX = cropper.value.x; cropper.value.lastY = cropper.value.y; };
+                const finalScale = computed(() => cropper.value.baseScale * cropper.value.userScale);
+                const cropStyle = computed(() => ({ transform: `translate(${cropper.value.x}px, ${cropper.value.y}px) scale(${finalScale.value})` }));
+                const getClientPos = (e) => e.touches ? { x: e.touches[0].clientX, y: e.touches[0].clientY } : { x: e.clientX, y: e.clientY };
+                const startDrag = (e) => { cropper.value.isDragging = true; const pos = getClientPos(e); cropper.value.startX = pos.x; cropper.value.startY = pos.y; };
+                const onDrag = (e) => { if (!cropper.value.isDragging) return; e.preventDefault(); const pos = getClientPos(e); cropper.value.x = cropper.value.lastX + (pos.x - cropper.value.startX); cropper.value.y = cropper.value.lastY + (pos.y - cropper.value.startY); };
+                const stopDrag = () => { cropper.value.isDragging = false; cropper.value.lastX = cropper.value.x; cropper.value.lastY = cropper.value.y; };
+                const confirmCrop = () => { const cvs = document.createElement('canvas'); const ctx = cvs.getContext('2d'); cvs.width = 200; cvs.height = 200; ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, 200, 200); const ratio = 200/280; ctx.save(); ctx.scale(ratio, ratio); ctx.translate(cropper.value.x, cropper.value.y); ctx.scale(finalScale.value, finalScale.value); ctx.drawImage(cropImg.value, 0, 0); ctx.restore(); newCatData.value.avatarPreview = cvs.toDataURL('image/jpeg', 0.85); newCatData.value.avatarBase64 = newCatData.value.avatarPreview; showCropper.value = false; };
+                const cancelCrop = () => showCropper.value = false;
+                const getCatName = (id) => cats.value.find(c => c.id === id)?.name;
+                const getCatAvatar = (id) => cats.value.find(c => c.id === id)?.avatar || defaultAvatar;
+                const getCatColor = (id) => cats.value.find(c => c.id === id)?.color || '#ccc';
+                const getSelectedCatColor = computed(() => getCatColor(newEntry.value.catId));
+                const formatDate = (s) => s.replace(/-/g, '.');
+                const editCat = (cat) => { editingCatId.value = cat.id; newCatData.value = { name: cat.name, avatarPreview: cat.avatar, avatarBase64: cat.avatar }; window.scrollTo({ top: 0, behavior: 'smooth' }); };
+                const cancelEdit = () => { editingCatId.value = null; newCatData.value = { name: '', avatarPreview: null, avatarBase64: null }; };
+                const saveCat = () => { if(!newCatData.value.name.trim()) return alert('請輸入名字'); const payload = { name: newCatData.value.name, avatar: newCatData.value.avatarBase64 || null }; if(isEditing.value) db.ref(`cats/${editingCatId.value}`).update(payload).then(()=>{ cancelEdit(); alert('已更新'); }); else { payload.color = colors[cats.value.length % colors.length]; db.ref('cats').push(payload).then(()=>{ cancelEdit(); alert('已新增'); }); } };
+                const removeCat = (id) => confirm('刪除後無法復原，確定？') && db.ref(`cats/${id}`).remove();
+                watch(currentTab, (v) => v === 'chart' && nextTick(renderChart));
+                const isDatasetHidden = (i) => !!hiddenDatasets.value[i];
+                const toggleDataset = (i) => { const meta = chartInstance.getDatasetMeta(i); meta.hidden = meta.hidden === null ? !chartInstance.data.datasets[i].hidden : !meta.hidden; hiddenDatasets.value[i] = meta.hidden; chartInstance.update(); };
+                const renderChart = () => { const ctx = document.getElementById('weightChart'); if(!ctx) return; const allDates = [...new Set(records.value.map(r => r.date))].sort(); const datasets = cats.value.map(cat => ({ label: cat.name, data: allDates.map(d => records.value.filter(r => r.catId === cat.id).find(r => r.date === d)?.weight || null), borderColor: cat.color, backgroundColor: cat.color, tension: 0, borderDash: [2, 2], pointRadius: 4, pointBackgroundColor: '#fff', spanGaps: true })); if(chartInstance) chartInstance.destroy(); chartInstance = new Chart(ctx, { type: 'line', data: { labels: allDates.map(d=>d.slice(5).replace('-','.')), datasets }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { grid: { color: '#f0f0f0' }, border: { display: false } } } } }); hiddenDatasets.value = {}; };
+
+                return { currentTab, cats, displayedRecords, newEntry, newCatData, isEditing, loading, healthAlert, defaultAvatar, saveRecord, editRecord, deleteRecord, cancelRecordEdit, editingRecordId, showAllHistory, saveCat, editCat, cancelEdit, removeCat, getCatName, getCatAvatar, formatDate, getCatColor, getSelectedCatColor, triggerUpload, fileInput, onFileSelect, showCropper, cropper, cropImg, startDrag, onDrag, stopDrag, confirmCrop, cancelCrop, cropStyle, onImgLoad, isDatasetHidden, toggleDataset };
+            }
+        }).mount('#app');
+    } catch(e) {
+        alert("初始化失敗：" + e.message);
+    }
 </script>
 </body>
 </html>
